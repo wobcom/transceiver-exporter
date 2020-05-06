@@ -1,6 +1,6 @@
 # Prometheus transceiver exporter
 
-This tool provides diagnostics for pluggable transceivers (SFP, SFP+, QSFP, etc.) by leveraging the [ethtool library](https://gitlab.service.wobcom.de/fluepke/ethtool).
+This tool provides diagnostics for pluggable transceivers (SFP, SFP+, QSFP, etc.) by leveraging the [ethtool library](https://gitlab.com/wobcom/ethtool).
 You can use this tool with [CumulusLinux](https://cumulusnetworks.com/products/cumulus-linux/).
 
 ## Command line options
