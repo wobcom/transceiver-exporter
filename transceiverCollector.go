@@ -251,6 +251,7 @@ func (t *TransceiverCollector) Collect(ch chan<- prometheus.Metric) {
 		log.Errorf("Could not instanciate ethtool: %v", err)
 		return
 	}
+    defer tool.Close()
 
 	for _, ifaceName := range ifaceNames {
 		iface, err := tool.NewInterface(ifaceName, true)
