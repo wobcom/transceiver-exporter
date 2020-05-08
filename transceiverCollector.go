@@ -73,9 +73,10 @@ var (
 	laserRxPowerLowWarningThresholdDesc  *prometheus.Desc
 )
 
+// TransceiverCollector implements prometheus.Collector interface and collects various interface statistics
 type TransceiverCollector struct{}
 
-type MeasurementDesc struct {
+type measurementDesc struct {
 	ValueDesc                 *prometheus.Desc
 	ThresholdsSupportedDesc   *prometheus.Desc
 	ThresholdsHighAlarmDesc   *prometheus.Desc
@@ -150,10 +151,12 @@ func init() {
 	laserRxPowerLowWarningThresholdDesc = prometheus.NewDesc(prefix+"laser_rx_power_low_warning_threshold_milliwatts", "Low warning threshold for the laser rx power in milliwatts", laserLabels, nil)
 }
 
+// NewTransceiverCollector initializes a new TransceiverCollector
 func NewTransceiverCollector() *TransceiverCollector {
 	return &TransceiverCollector{}
 }
 
+// Describe implements prometheus.Collector interface's Describe function
 func (t *TransceiverCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- driverDesc
 	ch <- driverVersionDesc
@@ -236,6 +239,7 @@ func getMonitoredInterfaces() ([]string, error) {
 	return ifaceNames, nil
 }
 
+// Collect implements prometheus.Collector interface's Collect function
 func (t *TransceiverCollector) Collect(ch chan<- prometheus.Metric) {
 	ifaceNames, err := getMonitoredInterfaces()
 	if err != nil {
@@ -307,7 +311,7 @@ func exportEEPROMMetricsForInterface(ifaceName string, rom eeprom.EEPROM, ch cha
 	if rom.SupportsMonitoring() {
 		temperature, err := rom.GetModuleTemperature()
 		if err == nil {
-			exportMeasurement([]string{ifaceName}, temperature, &MeasurementDesc{
+			exportMeasurement([]string{ifaceName}, temperature, &measurementDesc{
 				moduleTemperatureDesc,
 				moduleTemperatureThresholdsSupportedDesc,
 				moduleTemperatureHighAlarmThresholdDesc,
@@ -318,7 +322,7 @@ func exportEEPROMMetricsForInterface(ifaceName string, rom eeprom.EEPROM, ch cha
 		}
 		voltage, err := rom.GetModuleVoltage()
 		if err == nil {
-			exportMeasurement([]string{ifaceName}, voltage, &MeasurementDesc{
+			exportMeasurement([]string{ifaceName}, voltage, &measurementDesc{
 				moduleVoltageDesc,
 				moduleVoltageThresholdsSupportedDesc,
 				moduleVoltageHighAlarmThresholdDesc,
@@ -335,7 +339,7 @@ func exportEEPROMMetricsForInterface(ifaceName string, rom eeprom.EEPROM, ch cha
 
 			bias, err := laser.GetBias()
 			if err == nil {
-				exportMeasurement(laserLabels, bias, &MeasurementDesc{
+				exportMeasurement(laserLabels, bias, &measurementDesc{
 					laserBiasDesc,
 					laserBiasThresholdsSupportedDesc,
 					laserBiasHighAlarmThresholdDesc,
@@ -346,7 +350,7 @@ func exportEEPROMMetricsForInterface(ifaceName string, rom eeprom.EEPROM, ch cha
 			}
 			txPower, err := laser.GetTxPower()
 			if err == nil {
-				exportMeasurement(laserLabels, txPower, &MeasurementDesc{
+				exportMeasurement(laserLabels, txPower, &measurementDesc{
 					laserTxPowerDesc,
 					laserTxPowerThresholdsSupportedDesc,
 					laserTxPowerHighAlarmThresholdDesc,
@@ -357,7 +361,7 @@ func exportEEPROMMetricsForInterface(ifaceName string, rom eeprom.EEPROM, ch cha
 			}
 			rxPower, err := laser.GetRxPower()
 			if err == nil {
-				exportMeasurement(laserLabels, rxPower, &MeasurementDesc{
+				exportMeasurement(laserLabels, rxPower, &measurementDesc{
 					laserRxPowerDesc,
 					laserRxPowerThresholdsSupportedDesc,
 					laserRxPowerHighAlarmThresholdDesc,
@@ -370,7 +374,7 @@ func exportEEPROMMetricsForInterface(ifaceName string, rom eeprom.EEPROM, ch cha
 	}
 }
 
-func exportMeasurement(labels []string, measurement eeprom.Measurement, measurementDesc *MeasurementDesc, ch chan<- prometheus.Metric) {
+func exportMeasurement(labels []string, measurement eeprom.Measurement, measurementDesc *measurementDesc, ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(measurementDesc.ValueDesc, prometheus.GaugeValue, measurement.GetValue(), labels...)
 	thresholdsSupported := measurement.SupportsThresholds()
 	ch <- prometheus.MustNewConstMetric(measurementDesc.ThresholdsSupportedDesc, prometheus.GaugeValue, boolToFloat64(thresholdsSupported), labels...)
