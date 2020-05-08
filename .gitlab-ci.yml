@@ -1,0 +1,41 @@
+image: golang:1.14
+
+stages:
+  - verify
+
+default:
+  before_script:
+    - mkdir -p /go/src/gitlab.com/wobcom /go/src/_/builds
+    - cp -r $CI_PROJECT_DIR /go/src/gitlab.com/wobcom/transceiver-exporter
+    - ln -s /go/src/gitlab.com/wobcom/transceiver-exporter /go/src/_/builds/transceiver-exporter
+    - go get -v -d ./...
+    - go build -i -v gitlab.com/wobcom/transceiver-exporter
+
+fmt:
+  stage: verify
+  tags:
+    - docker
+  script:
+    - test -z $(gofmt -l ./...)
+
+lint:
+  stage: verify
+  tags:
+    - docker
+  script:
+    - go get -u golang.org/x/lint/golint
+    - golint -set_exit_status ./...
+
+vet:
+  stage: verify
+  tags:
+    - docker
+  script:
+    - go vet ./...
+
+test:
+  stage: verify
+  tags:
+    - docker
+  script:
+    - go test ./...
