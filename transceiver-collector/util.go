@@ -1,7 +1,7 @@
-package main
+package transceivercollector
 
-func contains(slice []string, test string) bool {
-	for _, item := range slice {
+func contains(l []string, test string) bool {
+	for _, item := range l {
 		if item == test {
 			return true
 		}
@@ -11,7 +11,7 @@ func contains(slice []string, test string) bool {
 
 func boolToFloat64(b bool) float64 {
 	if b {
-		return 1.0
+		return 1
 	}
 	return 0
 }

@@ -1,6 +1,7 @@
-package main
+package transceivercollector
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
@@ -8,8 +9,9 @@ import (
 	"gitlab.com/wobcom/ethtool/eeprom"
 	"net"
 	"strconv"
-	"strings"
 )
+
+const prefix = "transceiver_"
 
 var (
 	driverDesc              *prometheus.Desc
@@ -74,7 +76,10 @@ var (
 )
 
 // TransceiverCollector implements prometheus.Collector interface and collects various interface statistics
-type TransceiverCollector struct{}
+type TransceiverCollector struct {
+	excludeInterfaces        []string
+	collectInterfaceFeatures bool
+}
 
 type measurementDesc struct {
 	ValueDesc                 *prometheus.Desc
@@ -151,9 +156,17 @@ func init() {
 	laserRxPowerLowWarningThresholdDesc = prometheus.NewDesc(prefix+"laser_rx_power_low_warning_threshold_milliwatts", "Low warning threshold for the laser rx power in milliwatts", laserLabels, nil)
 }
 
-// NewTransceiverCollector initializes a new TransceiverCollector
-func NewTransceiverCollector() *TransceiverCollector {
-	return &TransceiverCollector{}
+// NewCollector initializes a new TransceiverCollector
+func NewCollector(excludeInterfaces []string, collectInterfaceFeatures bool) *TransceiverCollector {
+	return &TransceiverCollector{
+		excludeInterfaces:        excludeInterfaces,
+		collectInterfaceFeatures: collectInterfaceFeatures,
+	}
+}
+
+// Name returns the string "transceiver-collector"
+func (t *TransceiverCollector) Name() string {
+	return "transceiver-collector"
 }
 
 // Describe implements prometheus.Collector interface's Describe function
@@ -215,23 +228,18 @@ func (t *TransceiverCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- laserRxPowerLowWarningThresholdDesc
 }
 
-// blacklistedIfaceNames enumerates the system's network interfaces and filters out command line blacklisted ones as well as loopback interfaces
-func getMonitoredInterfaces() ([]string, error) {
+func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		return []string{}, errors.Wrapf(err, "Could not enumerate system's interfaces")
 	}
 
 	ifaceNames := []string{}
-	blacklistedIfaceNames := strings.Split(*excludeInterfaces, ",")
-	for index, blacklistedIfaceName := range blacklistedIfaceNames {
-		blacklistedIfaceNames[index] = strings.Trim(blacklistedIfaceName, " ")
-	}
 	for _, iface := range interfaces {
 		if iface.Flags&net.FlagLoopback > 0 {
 			continue
 		}
-		if contains(blacklistedIfaceNames, iface.Name) {
+		if contains(t.excludeInterfaces, iface.Name) {
 			continue
 		}
 		ifaceNames = append(ifaceNames, iface.Name)
@@ -240,33 +248,37 @@ func getMonitoredInterfaces() ([]string, error) {
 }
 
 // Collect implements prometheus.Collector interface's Collect function
-func (t *TransceiverCollector) Collect(ch chan<- prometheus.Metric) {
-	ifaceNames, err := getMonitoredInterfaces()
+func (t *TransceiverCollector) Collect(ch chan<- prometheus.Metric, errs chan error, done chan struct{}) {
+	defer func() {
+		done <- struct{}{}
+	}()
+
+	ifaceNames, err := t.getMonitoredInterfaces()
 	if err != nil {
 		log.Error(err.Error())
 		return
 	}
 	tool, err := ethtool.NewEthtool()
 	if err != nil {
-		log.Errorf("Could not instanciate ethtool: %v", err)
+		errs <- fmt.Errorf("Could not instanciate ethtool: %v", err)
 		return
 	}
-    defer tool.Close()
+	defer tool.Close()
 
 	for _, ifaceName := range ifaceNames {
 		iface, err := tool.NewInterface(ifaceName, true)
 		if err != nil {
-			log.Errorf("Error fetching information for interface %s: %v", ifaceName, err)
-			// continue
+			errs <- fmt.Errorf("Error fetching information for interface %s: %v", ifaceName, err)
+			continue
 		}
 		if iface != nil {
-			exportMetricsForInterface(iface, ch)
+			t.exportMetricsForInterface(iface, ch)
 		}
 	}
 }
 
-func exportMetricsForInterface(iface *ethtool.Interface, ch chan<- prometheus.Metric) {
-	if *collectInterfaceFeatures {
+func (t *TransceiverCollector) exportMetricsForInterface(iface *ethtool.Interface, ch chan<- prometheus.Metric) {
+	if t.collectInterfaceFeatures {
 		features, err := iface.GetFeatures()
 		if err == nil {
 			for name, status := range features {
@@ -293,7 +305,7 @@ func exportDriverInfoMetricsForInterface(ifaceName string, driverInfo *ethtool.D
 
 func exportEEPROMMetricsForInterface(ifaceName string, rom eeprom.EEPROM, ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(identifierDesc, prometheus.GaugeValue, 1, ifaceName, rom.GetIdentifier().String())
-	ch <- prometheus.MustNewConstMetric(encodingDesc, prometheus.GaugeValue, 1, ifaceName, rom.GetEncoding().String())
+	ch <- prometheus.MustNewConstMetric(encodingDesc, prometheus.GaugeValue, 1, ifaceName, rom.GetEncoding())
 	ch <- prometheus.MustNewConstMetric(powerClassDesc, prometheus.GaugeValue, float64(byte(rom.GetPowerClass())), ifaceName)
 	ch <- prometheus.MustNewConstMetric(powerClassWattageDesc, prometheus.GaugeValue, rom.GetPowerClass().GetMaxPower(), ifaceName)
 	ch <- prometheus.MustNewConstMetric(signalingRateDesc, prometheus.GaugeValue, rom.GetSignalingRate(), ifaceName)

@@ -6,13 +6,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
+	"gitlab.com/wobcom/transceiver-exporter/transceiver-collector"
 	"net/http"
 	"os"
+	"strings"
 )
 
 const version string = "0.1"
-
-const prefix = "transceiver_exporter_"
 
 var (
 	showVersion              = flag.Bool("version", false, "Print version and exit")
@@ -56,11 +56,41 @@ func startServer() {
 	log.Fatal(http.ListenAndServe(*listenAddress, nil))
 }
 
+type transceiverCollectorWrapper struct {
+    collector *transceivercollector.TransceiverCollector
+}
+
+func (t transceiverCollectorWrapper) Collect (ch chan<- prometheus.Metric) {
+    errs := make(chan error)
+    done := make(chan struct{})
+    go t.collector.Collect(ch, errs, done)
+    for {
+        select {
+        case err := <-errs:
+            log.Errorf("Error while collecting metrics: %v", err)
+        case <- done:
+            return
+        }
+    }
+}
+
+func (t transceiverCollectorWrapper) Describe(ch chan<- *prometheus.Desc) {
+    t.collector.Describe(ch)
+}
+
 func handleMetricsRequest(w http.ResponseWriter, request *http.Request) {
 	registry := prometheus.NewRegistry()
-	transceiverCollector := NewTransceiverCollector()
 
-	registry.MustRegister(transceiverCollector)
+	excludedIfaceNames := strings.Split(*excludeInterfaces, ",")
+	for index, excludedIfaceName := range excludedIfaceNames {
+		excludedIfaceNames[index] = strings.Trim(excludedIfaceName, " ")
+	}
+	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, *collectInterfaceFeatures)
+    wrapper := &transceiverCollectorWrapper{
+        collector: transceiverCollector,
+    }
+
+	registry.MustRegister(wrapper)
 	promhttp.HandlerFor(registry, promhttp.HandlerOpts{
 		ErrorLog:      log.NewErrorLogger(),
 		ErrorHandling: promhttp.ContinueOnError,
