@@ -2,6 +2,8 @@ image: golang:1.14
 
 stages:
   - verify
+  - build
+  - publish
 
 default:
   before_script:
@@ -9,7 +11,7 @@ default:
     - cp -r $CI_PROJECT_DIR /go/src/gitlab.com/wobcom/transceiver-exporter
     - ln -s /go/src/gitlab.com/wobcom/transceiver-exporter /go/src/_/builds/transceiver-exporter
     - go get -v -d ./...
-    - go build -i -v gitlab.com/wobcom/transceiver-exporter
+    - go build -o $CI_PROJECT_DIR/transceiver-exporter -i -v gitlab.com/wobcom/transceiver-exporter
 
 fmt:
   stage: verify
@@ -39,3 +41,23 @@ test:
     - docker
   script:
     - go test ./...
+
+build:
+  stage: build
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/transceiver-exporter*
+  tags:
+    - docker
+  script:
+    - GOOS=linux GOARCH=amd64 go build -o $CI_PROJECT_DIR/transceiver-exporter  -i -v gitlab.com/wobcom/transceiver-exporter
+
+publish:
+  stage: publish
+  tags:
+    - docker
+  only:
+    - tags
+  script:
+    - apt-get update && apt-get install -y jq
+    - ./.ci/publish.sh $CI_COMMIT_REF_NAME
