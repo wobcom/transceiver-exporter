@@ -1,4 +1,5 @@
 # Prometheus transceiver exporter
+[![CI Status](https://gitlab.com/wobcom/transceiver-exporter/badges/master/pipeline.svg)](https://gitlab.com/wobcom/transceiver-exporter/pipelines) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 This tool provides diagnostics for pluggable transceivers (SFP, SFP+, QSFP, etc.) by leveraging the [ethtool library](https://gitlab.com/wobcom/ethtool).
 You can use this tool with [CumulusLinux](https://cumulusnetworks.com/products/cumulus-linux/).
