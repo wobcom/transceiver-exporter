@@ -36,7 +36,7 @@ func main() {
 func printVersion() {
 	fmt.Println("transceiver-exporter")
 	fmt.Printf("Version: %s\n", version)
-	fmt.Println("Author(s): @fluepke")
+	fmt.Println("Author(s): @fluepke, @BarbarossaTM")
 	fmt.Println("Metrics Exporter for pluggable transceivers on Linux based hosts / switches")
 }
 
