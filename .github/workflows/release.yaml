@@ -16,5 +16,5 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.os }}
-        goarch: ${{ matrix.arch }}
+        goarch: ${{ matrix.goarch }}
         extra_files: LICENSE.md README.md
