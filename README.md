@@ -11,6 +11,8 @@ You might want to set `-collector.interface-features.enable` to false, because i
 Usage of ./transceiver-exporter:
   -collector.interface-features.enable
     	Collect interface features (default true)
+  -collector.optical-power-in-dbm
+    	Report optical powers in dBm instead of mW (default false -> mW)
   -exclude.interfaces string
     	Comma seperated list of interfaces to exclude
   -version
@@ -77,3 +79,7 @@ Usage of ./transceiver-exporter:
 
 ## Authors
 * @fluepke
+* @BarbarossaTM
+
+## Maintainer
+* @vidister
