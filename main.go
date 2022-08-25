@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/log"
-	"gitlab.com/wobcom/transceiver-exporter/transceiver-collector"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
+	transceivercollector "gitlab.com/wobcom/transceiver-exporter/transceiver-collector"
 )
 
 const version string = "1.0"
@@ -20,6 +21,7 @@ var (
 	metricsPath              = flag.String("web.telemetry-path", "/metrics", "Path under which to expose metrics")
 	collectInterfaceFeatures = flag.Bool("collector.interface-features.enable", true, "Collect interface features")
 	excludeInterfaces        = flag.String("exclude.interfaces", "", "Comma seperated list of interfaces to exclude")
+	powerUnitdBm             = flag.Bool("collector.optical-power-in-dbm", false, "Report optical powers in dBm instead of mW (default false -> mW)")
 )
 
 func main() {
@@ -36,7 +38,7 @@ func main() {
 func printVersion() {
 	fmt.Println("transceiver-exporter")
 	fmt.Printf("Version: %s\n", version)
-	fmt.Println("Author(s): @fluepke")
+	fmt.Println("Author(s): @fluepke, @BarbarossaTM")
 	fmt.Println("Metrics Exporter for pluggable transceivers on Linux based hosts / switches")
 }
 
@@ -57,25 +59,25 @@ func startServer() {
 }
 
 type transceiverCollectorWrapper struct {
-    collector *transceivercollector.TransceiverCollector
+	collector *transceivercollector.TransceiverCollector
 }
 
-func (t transceiverCollectorWrapper) Collect (ch chan<- prometheus.Metric) {
-    errs := make(chan error)
-    done := make(chan struct{})
-    go t.collector.Collect(ch, errs, done)
-    for {
-        select {
-        case err := <-errs:
-            log.Errorf("Error while collecting metrics: %v", err)
-        case <- done:
-            return
-        }
-    }
+func (t transceiverCollectorWrapper) Collect(ch chan<- prometheus.Metric) {
+	errs := make(chan error)
+	done := make(chan struct{})
+	go t.collector.Collect(ch, errs, done)
+	for {
+		select {
+		case err := <-errs:
+			log.Errorf("Error while collecting metrics: %v", err)
+		case <-done:
+			return
+		}
+	}
 }
 
 func (t transceiverCollectorWrapper) Describe(ch chan<- *prometheus.Desc) {
-    t.collector.Describe(ch)
+	t.collector.Describe(ch)
 }
 
 func handleMetricsRequest(w http.ResponseWriter, request *http.Request) {
@@ -85,10 +87,10 @@ func handleMetricsRequest(w http.ResponseWriter, request *http.Request) {
 	for index, excludedIfaceName := range excludedIfaceNames {
 		excludedIfaceNames[index] = strings.Trim(excludedIfaceName, " ")
 	}
-	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, *collectInterfaceFeatures)
-    wrapper := &transceiverCollectorWrapper{
-        collector: transceiverCollector,
-    }
+	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, *collectInterfaceFeatures, *powerUnitdBm)
+	wrapper := &transceiverCollectorWrapper{
+		collector: transceiverCollector,
+	}
 
 	registry.MustRegister(wrapper)
 	promhttp.HandlerFor(registry, promhttp.HandlerOpts{
