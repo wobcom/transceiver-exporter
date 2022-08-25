@@ -11,7 +11,6 @@ jobs:
         goos: [linux]
         goarch: ["386", amd64, arm64]
     steps:
-    steps:
     - uses: actions/checkout@v3
     - uses: wangyoucao577/go-release-action@v1.30
       with:
