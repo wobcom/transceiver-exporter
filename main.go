@@ -45,7 +45,7 @@ func printVersion() {
 func startServer() {
 	log.Infof("Starting transceiver-exporter (version: %s)\n", version)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<html>
+		_, _ = w.Write([]byte(`<html>
             <head><title>transceiver-exporter (Version ` + version + `)</title></head>
             <body>
             <h1>transceiver-exporter</h1>
