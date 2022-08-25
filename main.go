@@ -13,7 +13,7 @@ import (
 	transceivercollector "github.com/wobcom/transceiver-exporter/transceiver-collector"
 )
 
-const version string = "1.0"
+const version string = "1.1.0"
 
 var (
 	showVersion              = flag.Bool("version", false, "Print version and exit")
@@ -38,7 +38,7 @@ func main() {
 func printVersion() {
 	fmt.Println("transceiver-exporter")
 	fmt.Printf("Version: %s\n", version)
-	fmt.Println("Author(s): @fluepke, @BarbarossaTM")
+	fmt.Println("Author(s): @fluepke, @BarbarossaTM, @vidister")
 	fmt.Println("Metrics Exporter for pluggable transceivers on Linux based hosts / switches")
 }
 

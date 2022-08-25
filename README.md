@@ -24,7 +24,9 @@ Usage of ./transceiver-exporter:
 ```
 
 ## Exported metrics
-> Note: Transmit / Receive power (and thresholds) are exported as milliwatts just as they are read from the module. If you wish to have decibel milliwatts, you'll have to do the conversion `10 * math.Log10(value_in_milliwatts)`. Please also note that, this might result `-Inf` for a value of 0 which might cause trouble with software / standards (e.g. JSON) not fully implementing the IEE754 floating point standard.
+
+Note: Transmit / Receive power (and thresholds) are exported as milliwatts just as they are read from the module. If you wish to have decibel milliwatts, you'll have to do the conversion `10 * math.Log10(value_in_milliwatts)`. Please also note that, this might result `-Inf` for a value of 0 which might cause trouble with software / standards (e.g. JSON) not fully implementing the IEE754 floating point standard.
+Starting in version 1.1.0 we added the runtime option `-collector.optical-power-in-dbm` to enable conversion to dBm in the exporter.
 
 * `transceiver_exporter_date_code_unix_time`: Vendor supplied date code exported as unix epoch
 * `transceiver_exporter_driver_name_info`: Driver name
@@ -77,9 +79,10 @@ Usage of ./transceiver-exporter:
 * `transceiver_exporter_vendor_serial_number_info`: Vendor serial number
 * `transceiver_exporter_wavelength_nanometer`: Wavelength in nanometers
 
+## Maintainer
+* @vidister
+
 ## Authors
 * @fluepke
 * @BarbarossaTM
-
-## Maintainer
 * @vidister
