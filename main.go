@@ -9,8 +9,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/log"
-	transceivercollector "gitlab.com/wobcom/transceiver-exporter/transceiver-collector"
+	log "github.com/sirupsen/logrus"
+	transceivercollector "github.com/wobcom/transceiver-exporter/transceiver-collector"
 )
 
 const version string = "1.0"
@@ -93,8 +93,11 @@ func handleMetricsRequest(w http.ResponseWriter, request *http.Request) {
 	}
 
 	registry.MustRegister(wrapper)
+	l := log.New()
+	l.Level = log.ErrorLevel
+
 	promhttp.HandlerFor(registry, promhttp.HandlerOpts{
-		ErrorLog:      log.NewErrorLogger(),
+		ErrorLog:      l,
 		ErrorHandling: promhttp.ContinueOnError,
 	}).ServeHTTP(w, request)
 }
