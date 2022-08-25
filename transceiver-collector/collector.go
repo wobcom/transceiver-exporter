@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/wobcom/ethtool"
-	"gitlab.com/wobcom/ethtool/eeprom"
+	"github.com/wobcom/go-ethtool"
+	"github.com/wobcom/go-ethtool/eeprom"
 )
 
 const prefix = "transceiver_"
