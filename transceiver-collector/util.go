@@ -3,6 +3,7 @@ package transceivercollector
 import (
 	"math"
 	"regexp"
+	"strconv"
 )
 
 func contains(l []string, test string) bool {
@@ -24,4 +25,10 @@ func boolToFloat64(b bool) float64 {
 
 func milliwattsToDbm(mw float64) float64 {
 	return 10 * math.Log10(mw)
+}
+
+func quoteToascii(str string) string {
+	textQuoted := strconv.QuoteToASCII(str)
+	textUnquoted := textQuoted[1 : len(textQuoted)-1]
+	return textUnquoted
 }

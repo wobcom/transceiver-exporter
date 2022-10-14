@@ -356,7 +356,7 @@ func (t *TransceiverCollector) exportMetricsForInterface(iface *ethtool.Interfac
 
 func exportDriverInfoMetricsForInterface(ifaceName string, driverInfo *ethtool.DriverInfo, ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(driverDesc, prometheus.GaugeValue, 1, ifaceName, driverInfo.DriverName)
-	ch <- prometheus.MustNewConstMetric(driverVersionDesc, prometheus.GaugeValue, 1, ifaceName, driverInfo.DriverVersion)
+	ch <- prometheus.MustNewConstMetric(driverVersionDesc, prometheus.GaugeValue, 1, ifaceName, quoteToascii(driverInfo.DriverVersion))
 	ch <- prometheus.MustNewConstMetric(firmwareVersionDesc, prometheus.GaugeValue, 1, ifaceName, driverInfo.FirmwareVersion)
 	ch <- prometheus.MustNewConstMetric(busInfoDesc, prometheus.GaugeValue, 1, ifaceName, driverInfo.BusInfo)
 	ch <- prometheus.MustNewConstMetric(expansionRomVersionDesc, prometheus.GaugeValue, 1, ifaceName, driverInfo.ExpansionRomVersion)
