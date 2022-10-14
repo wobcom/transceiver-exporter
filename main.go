@@ -49,6 +49,7 @@ func startServer() {
             <head><title>transceiver-exporter (Version ` + version + `)</title></head>
             <body>
             <h1>transceiver-exporter</h1>
+			<p><a href="/metrics">Metrics</a></p>
             </body>
             </html>`))
 	})
