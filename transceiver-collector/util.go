@@ -1,10 +1,14 @@
 package transceivercollector
 
-import "math"
+import (
+	"math"
+	"regexp"
+)
 
 func contains(l []string, test string) bool {
 	for _, item := range l {
-		if item == test {
+		match, _ := regexp.MatchString(item, test)
+		if match {
 			return true
 		}
 	}

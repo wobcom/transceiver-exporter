@@ -20,7 +20,7 @@ var (
 	listenAddress            = flag.String("web.listen-address", "[::]:9458", "Address to listen on")
 	metricsPath              = flag.String("web.telemetry-path", "/metrics", "Path under which to expose metrics")
 	collectInterfaceFeatures = flag.Bool("collector.interface-features.enable", true, "Collect interface features")
-	excludeInterfaces        = flag.String("exclude.interfaces", "", "Comma seperated list of interfaces to exclude")
+	excludeInterfaces        = flag.String("exclude.interfaces", "", "Comma seperated list of interfaces regular to exclude")
 	powerUnitdBm             = flag.Bool("collector.optical-power-in-dbm", false, "Report optical powers in dBm instead of mW (default false -> mW)")
 )
 
@@ -83,9 +83,12 @@ func (t transceiverCollectorWrapper) Describe(ch chan<- *prometheus.Desc) {
 func handleMetricsRequest(w http.ResponseWriter, request *http.Request) {
 	registry := prometheus.NewRegistry()
 
-	excludedIfaceNames := strings.Split(*excludeInterfaces, ",")
-	for index, excludedIfaceName := range excludedIfaceNames {
-		excludedIfaceNames[index] = strings.Trim(excludedIfaceName, " ")
+	var excludedIfaceNames []string
+	if len(*excludeInterfaces) != 0 {
+		excludedIfaceNames = strings.Split(*excludeInterfaces, ",")
+		for index, excludedIfaceName := range excludedIfaceNames {
+			excludedIfaceNames[index] = strings.Trim(excludedIfaceName, " ")
+		}
 	}
 	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, *collectInterfaceFeatures, *powerUnitdBm)
 	wrapper := &transceiverCollectorWrapper{
