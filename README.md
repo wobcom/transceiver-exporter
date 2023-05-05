@@ -15,6 +15,8 @@ Usage of ./transceiver-exporter:
     	Report optical powers in dBm instead of mW (default false -> mW)
   -exclude.interfaces string
     	Comma seperated list of interfaces to exclude
+  -include.interfaces string
+    	Comma seperated list of interfaces to include
   -version
     	Print version and exit
   -web.listen-address string
