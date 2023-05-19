@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -295,13 +296,18 @@ func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 
 	ifaceNames := []string{}
 	for _, iface := range interfaces {
+		var exclude bool
 		if iface.Flags&net.FlagLoopback > 0 {
 			continue
 		}
-		if contains(t.excludeInterfaces, iface.Name) {
-			continue
+		for index := range t.excludeInterfaces {
+			if strings.HasPrefix(iface.Name, t.excludeInterfaces[index]) {
+				exclude = true
+			}
 		}
-		ifaceNames = append(ifaceNames, iface.Name)
+		if exclude == false {
+			ifaceNames = append(ifaceNames, iface.Name)
+		}
 	}
 	return ifaceNames, nil
 }
