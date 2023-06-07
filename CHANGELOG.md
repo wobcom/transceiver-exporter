@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 - 2023-06-07
+### Changes
+* Added arm binary to CI
+
 ## 1.1.0 - 2022-08-25
 ### Changes
 * Added the option to export optical power in dBm instead of mW
