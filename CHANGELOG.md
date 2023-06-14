@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 - 2023-06-14
+### Changes
+* Added the option to include specific interfaces
+  * `-include.interfaces`
+  * Thanks @SRv6d for this contribution! 
+
 ## 1.2.0 - 2023-06-07
 ### Changes
 * Added arm binary to CI

@@ -297,7 +297,7 @@ func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 
 	InterfacesExcluded := len(t.excludeInterfaces) > 0
 	InterfacesIncluded := len(t.includeInterfaces) > 0
-	if InterfacesExcluded == true && InterfacesIncluded == true {
+	if InterfacesExcluded && InterfacesIncluded {
 		return []string{}, errors.New("Cannot include and exclude interfaces at the same time")
 	}
 
@@ -306,10 +306,10 @@ func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 		if iface.Flags&net.FlagLoopback > 0 {
 			continue
 		}
-		if InterfacesExcluded == true && contains(t.excludeInterfaces, iface.Name) {
+		if InterfacesExcluded && contains(t.excludeInterfaces, iface.Name) {
 			continue
 		}
-		if InterfacesIncluded == true && !contains(t.includeInterfaces, iface.Name) {
+		if InterfacesIncluded && !contains(t.includeInterfaces, iface.Name) {
 			continue
 		}
 
