@@ -22,6 +22,7 @@ var (
 	collectInterfaceFeatures = flag.Bool("collector.interface-features.enable", true, "Collect interface features")
 	excludeInterfaces        = flag.String("exclude.interfaces", "", "Comma seperated list of interfaces to exclude")
 	includeInterfaces        = flag.String("include.interfaces", "", "Comma seperated list of interfaces to include")
+	excludeInterfacesDown    = flag.Bool("exclude.interfaces-down", false, "Don't report on interfaces being management DOWN")
 	powerUnitdBm             = flag.Bool("collector.optical-power-in-dbm", false, "Report optical powers in dBm instead of mW (default false -> mW)")
 )
 
@@ -98,7 +99,7 @@ func handleMetricsRequest(w http.ResponseWriter, request *http.Request) {
 			includedIfaceNames[index] = strings.Trim(includedIfaceName, " ")
 		}
 	}
-	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, includedIfaceNames, *collectInterfaceFeatures, *powerUnitdBm)
+	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, includedIfaceNames, *excludeInterfacesDown, *collectInterfaceFeatures, *powerUnitdBm)
 	wrapper := &transceiverCollectorWrapper{
 		collector: transceiverCollector,
 	}
