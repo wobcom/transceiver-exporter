@@ -92,6 +92,7 @@ var laserLabels = []string{"interface", "laser_index"}
 type TransceiverCollector struct {
 	excludeInterfaces        []string
 	includeInterfaces        []string
+	excludeInterfacesDown    bool
 	collectInterfaceFeatures bool
 	powerUnitdBm             bool
 }
@@ -173,7 +174,7 @@ func init() {
 }
 
 // NewCollector initializes a new TransceiverCollector
-func NewCollector(excludeInterfaces []string, includeInterfaces []string, collectInterfaceFeatures bool, powerUnitdBm bool) *TransceiverCollector {
+func NewCollector(excludeInterfaces []string, includeInterfaces []string, excludeInterfacesDown bool, collectInterfaceFeatures bool, powerUnitdBm bool) *TransceiverCollector {
 	laserTxPowerThresholdsSupportedDesc = prometheus.NewDesc(prefix+"laser_tx_power_supports_thresholds_bool", "1 if thresholds for the laser tx power are supported", laserLabels, nil)
 	laserRxPowerThresholdsSupportedDesc = prometheus.NewDesc(prefix+"laser_rx_power_supports_thresholds_bool", "1 if thresholds for the laser rx power are supported", laserLabels, nil)
 	if powerUnitdBm {
@@ -205,6 +206,7 @@ func NewCollector(excludeInterfaces []string, includeInterfaces []string, collec
 	return &TransceiverCollector{
 		excludeInterfaces:        excludeInterfaces,
 		includeInterfaces:        includeInterfaces,
+		excludeInterfacesDown:    excludeInterfacesDown,
 		collectInterfaceFeatures: collectInterfaceFeatures,
 		powerUnitdBm:             powerUnitdBm,
 	}
@@ -304,6 +306,9 @@ func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 	ifaceNames := []string{}
 	for _, iface := range interfaces {
 		if iface.Flags&net.FlagLoopback > 0 {
+			continue
+		}
+		if iface.Flags&net.FlagUp == 0 && t.excludeInterfacesDown {
 			continue
 		}
 		if InterfacesExcluded && contains(t.excludeInterfaces, iface.Name) {
