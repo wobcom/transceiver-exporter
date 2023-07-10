@@ -10,19 +10,21 @@ You might want to set `-collector.interface-features.enable` to false, because i
 ```
 Usage of ./transceiver-exporter:
   -collector.interface-features.enable
-    	Collect interface features (default true)
+        Collect interface features (default true)
   -collector.optical-power-in-dbm
-    	Report optical powers in dBm instead of mW (default false -> mW)
+        Report optical powers in dBm instead of mW (default false -> mW)
   -exclude.interfaces string
-    	Comma seperated list of interfaces to exclude
+        Comma seperated list of interfaces to exclude
+  -exclude.interfaces-down
+        Don't report on interfaces being management DOWN
   -include.interfaces string
-    	Comma seperated list of interfaces to include
+        Comma seperated list of interfaces to include
   -version
-    	Print version and exit
+        Print version and exit
   -web.listen-address string
-    	Address to listen on (default "[::]:9457")
+        Address to listen on (default "[::]:9458")
   -web.telemetry-path string
-    	Path under which to expose metrics (default "/metrics")
+        Path under which to expose metrics (default "/metrics")
 ```
 
 ## Exported metrics

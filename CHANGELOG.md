@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 - 2023-07-10
+### Changes
+* Added the option to exclude admin down interfaces
+  * `-exclude.interfaces-down`
+  * Thanks @4xoc for this contribution! 
+
 ## 1.3.0 - 2023-06-14
 ### Changes
 * Added the option to include specific interfaces
