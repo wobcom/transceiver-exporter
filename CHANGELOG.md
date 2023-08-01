@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1 - 2023-08-01
+### Changes
+* --version now returns the correct version
+
 ## 1.4.0 - 2023-07-10
 ### Changes
 * Added the option to exclude admin down interfaces
