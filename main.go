@@ -13,7 +13,7 @@ import (
 	transceivercollector "github.com/wobcom/transceiver-exporter/transceiver-collector"
 )
 
-const version string = "1.4.1"
+const version string = "1.5.0"
 
 var (
 	showVersion              = flag.Bool("version", false, "Print version and exit")
@@ -22,6 +22,8 @@ var (
 	collectInterfaceFeatures = flag.Bool("collector.interface-features.enable", true, "Collect interface features")
 	excludeInterfaces        = flag.String("exclude.interfaces", "", "Comma seperated list of interfaces to exclude")
 	includeInterfaces        = flag.String("include.interfaces", "", "Comma seperated list of interfaces to include")
+	excludeInterfacesRegex   = flag.String("exclude.interfaces-regex", "", "Regex of interfaces to exclude")
+	includeInterfaceRegex    = flag.String("include.interfaces-regex", "", "Regex of interfaces to include")
 	excludeInterfacesDown    = flag.Bool("exclude.interfaces-down", false, "Don't report on interfaces being management DOWN")
 	powerUnitdBm             = flag.Bool("collector.optical-power-in-dbm", false, "Report optical powers in dBm instead of mW (default false -> mW)")
 )
@@ -99,7 +101,7 @@ func handleMetricsRequest(w http.ResponseWriter, request *http.Request) {
 			includedIfaceNames[index] = strings.Trim(includedIfaceName, " ")
 		}
 	}
-	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, includedIfaceNames, *excludeInterfacesDown, *collectInterfaceFeatures, *powerUnitdBm)
+	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, includedIfaceNames, *excludeInterfacesRegex, *includeInterfaceRegex, *excludeInterfacesDown, *collectInterfaceFeatures, *powerUnitdBm)
 	wrapper := &transceiverCollectorWrapper{
 		collector: transceiverCollector,
 	}
