@@ -93,8 +93,8 @@ var laserLabels = []string{"interface", "laser_index"}
 type TransceiverCollector struct {
 	excludeInterfaces        []string
 	includeInterfaces        []string
-	excludeInterfacesRegex   string
-	includeInterfacesRegex   string
+	excludeInterfacesRegex   *regexp.Regexp
+	includeInterfacesRegex   *regexp.Regexp
 	excludeInterfacesDown    bool
 	collectInterfaceFeatures bool
 	powerUnitdBm             bool
@@ -177,7 +177,7 @@ func init() {
 }
 
 // NewCollector initializes a new TransceiverCollector
-func NewCollector(excludeInterfaces []string, includeInterfaces []string, excludeInterfacesRegex, includeInterfacesRegex string, excludeInterfacesDown bool, collectInterfaceFeatures bool, powerUnitdBm bool) *TransceiverCollector {
+func NewCollector(excludeInterfaces []string, includeInterfaces []string, excludeInterfacesRegex, includeInterfacesRegex *regexp.Regexp, excludeInterfacesDown bool, collectInterfaceFeatures bool, powerUnitdBm bool) *TransceiverCollector {
 	laserTxPowerThresholdsSupportedDesc = prometheus.NewDesc(prefix+"laser_tx_power_supports_thresholds_bool", "1 if thresholds for the laser tx power are supported", laserLabels, nil)
 	laserRxPowerThresholdsSupportedDesc = prometheus.NewDesc(prefix+"laser_rx_power_supports_thresholds_bool", "1 if thresholds for the laser rx power are supported", laserLabels, nil)
 	if powerUnitdBm {
@@ -308,16 +308,6 @@ func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 		return []string{}, errors.New("Cannot include and exclude interfaces at the same time")
 	}
 
-	interfacesExcludeRegexCompiled, err := regexp.Compile(t.excludeInterfacesRegex)
-	if err != nil {
-		return []string{}, errors.Wrapf(err, "Could not compile regex %s", t.excludeInterfacesRegex)
-	}
-
-	interfacesIncludeRegexCompiled, err := regexp.Compile(t.includeInterfacesRegex)
-	if err != nil {
-		return []string{}, errors.Wrapf(err, "Could not compile regex %s", t.includeInterfacesRegex)
-	}
-
 	ifaceNames := []string{}
 	for _, iface := range interfaces {
 		if iface.Flags&net.FlagLoopback > 0 {
@@ -332,10 +322,10 @@ func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 		if InterfacesIncluded && !contains(t.includeInterfaces, iface.Name) {
 			continue
 		}
-		if len(t.excludeInterfacesRegex) > 0 && interfacesExcludeRegexCompiled.MatchString(iface.Name) {
+		if len(t.excludeInterfacesRegex.String()) > 0 && t.excludeInterfacesRegex.MatchString(iface.Name) {
 			continue
 		}
-		if len(t.includeInterfacesRegex) > 0 && !interfacesIncludeRegexCompiled.MatchString(iface.Name) {
+		if len(t.includeInterfacesRegex.String()) > 0 && !t.includeInterfacesRegex.MatchString(iface.Name) {
 			continue
 		}
 
