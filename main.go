@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -22,8 +23,13 @@ var (
 	collectInterfaceFeatures = flag.Bool("collector.interface-features.enable", true, "Collect interface features")
 	excludeInterfaces        = flag.String("exclude.interfaces", "", "Comma seperated list of interfaces to exclude")
 	includeInterfaces        = flag.String("include.interfaces", "", "Comma seperated list of interfaces to include")
+	excludeInterfacesRegex   = flag.String("exclude.interfaces-regex", "", "Regex of interfaces to exclude")
+	includeInterfacesRegex   = flag.String("include.interfaces-regex", "", "Regex of interfaces to include")
 	excludeInterfacesDown    = flag.Bool("exclude.interfaces-down", false, "Don't report on interfaces being management DOWN")
 	powerUnitdBm             = flag.Bool("collector.optical-power-in-dbm", false, "Report optical powers in dBm instead of mW (default false -> mW)")
+
+	excludeInterfacesRegexCompiled = &regexp.Regexp{}
+	includeInterfacesRegexCompiled = &regexp.Regexp{}
 )
 
 func main() {
@@ -34,6 +40,10 @@ func main() {
 		os.Exit(0)
 	}
 
+	if err := compileRegexFlags(); err != nil {
+		log.Fatalf(err.Error())
+	}
+
 	startServer()
 }
 
@@ -42,6 +52,21 @@ func printVersion() {
 	fmt.Printf("Version: %s\n", version)
 	fmt.Println("Author(s): @fluepke, @BarbarossaTM, @vidister")
 	fmt.Println("Metrics Exporter for pluggable transceivers on Linux based hosts / switches")
+}
+
+// compileRegexFlags compiles the cli regex flags into the global variables
+// and returns an error if the regex is invalid
+func compileRegexFlags() error {
+	var err error
+	excludeInterfacesRegexCompiled, err = regexp.Compile(*excludeInterfacesRegex)
+	if err != nil {
+		return fmt.Errorf("error compiling exclude.interfaces-regex: %v", err)
+	}
+	includeInterfacesRegexCompiled, err = regexp.Compile(*includeInterfacesRegex)
+	if err != nil {
+		return fmt.Errorf("error compiling include.interfaces-regex: %v", err)
+	}
+	return nil
 }
 
 func startServer() {
@@ -99,7 +124,8 @@ func handleMetricsRequest(w http.ResponseWriter, request *http.Request) {
 			includedIfaceNames[index] = strings.Trim(includedIfaceName, " ")
 		}
 	}
-	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, includedIfaceNames, *excludeInterfacesDown, *collectInterfaceFeatures, *powerUnitdBm)
+
+	transceiverCollector := transceivercollector.NewCollector(excludedIfaceNames, includedIfaceNames, excludeInterfacesRegexCompiled, includeInterfacesRegexCompiled, *excludeInterfacesDown, *collectInterfaceFeatures, *powerUnitdBm)
 	wrapper := &transceiverCollectorWrapper{
 		collector: transceiverCollector,
 	}

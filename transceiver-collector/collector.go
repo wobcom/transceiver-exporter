@@ -3,6 +3,7 @@ package transceivercollector
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -92,6 +93,8 @@ var laserLabels = []string{"interface", "laser_index"}
 type TransceiverCollector struct {
 	excludeInterfaces        []string
 	includeInterfaces        []string
+	excludeInterfacesRegex   *regexp.Regexp
+	includeInterfacesRegex   *regexp.Regexp
 	excludeInterfacesDown    bool
 	collectInterfaceFeatures bool
 	powerUnitdBm             bool
@@ -174,7 +177,7 @@ func init() {
 }
 
 // NewCollector initializes a new TransceiverCollector
-func NewCollector(excludeInterfaces []string, includeInterfaces []string, excludeInterfacesDown bool, collectInterfaceFeatures bool, powerUnitdBm bool) *TransceiverCollector {
+func NewCollector(excludeInterfaces []string, includeInterfaces []string, excludeInterfacesRegex, includeInterfacesRegex *regexp.Regexp, excludeInterfacesDown bool, collectInterfaceFeatures bool, powerUnitdBm bool) *TransceiverCollector {
 	laserTxPowerThresholdsSupportedDesc = prometheus.NewDesc(prefix+"laser_tx_power_supports_thresholds_bool", "1 if thresholds for the laser tx power are supported", laserLabels, nil)
 	laserRxPowerThresholdsSupportedDesc = prometheus.NewDesc(prefix+"laser_rx_power_supports_thresholds_bool", "1 if thresholds for the laser rx power are supported", laserLabels, nil)
 	if powerUnitdBm {
@@ -206,6 +209,8 @@ func NewCollector(excludeInterfaces []string, includeInterfaces []string, exclud
 	return &TransceiverCollector{
 		excludeInterfaces:        excludeInterfaces,
 		includeInterfaces:        includeInterfaces,
+		excludeInterfacesRegex:   excludeInterfacesRegex,
+		includeInterfacesRegex:   includeInterfacesRegex,
 		excludeInterfacesDown:    excludeInterfacesDown,
 		collectInterfaceFeatures: collectInterfaceFeatures,
 		powerUnitdBm:             powerUnitdBm,
@@ -303,6 +308,11 @@ func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 		return []string{}, errors.New("Cannot include and exclude interfaces at the same time")
 	}
 
+	// check if the regex is a non empty string to prevent matching no interfaces
+	// when the default value of the cli flag is used
+	regexIncludeValid := t.includeInterfacesRegex.String() != ""
+	regexExcludeValid := t.excludeInterfacesRegex.String() != ""
+
 	ifaceNames := []string{}
 	for _, iface := range interfaces {
 		if iface.Flags&net.FlagLoopback > 0 {
@@ -315,6 +325,12 @@ func (t *TransceiverCollector) getMonitoredInterfaces() ([]string, error) {
 			continue
 		}
 		if InterfacesIncluded && !contains(t.includeInterfaces, iface.Name) {
+			continue
+		}
+		if regexExcludeValid && t.excludeInterfacesRegex.MatchString(iface.Name) {
+			continue
+		}
+		if regexIncludeValid && !t.includeInterfacesRegex.MatchString(iface.Name) {
 			continue
 		}
 
