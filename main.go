@@ -14,7 +14,7 @@ import (
 	transceivercollector "github.com/wobcom/transceiver-exporter/transceiver-collector"
 )
 
-const version string = "1.5.1"
+var version = "1.5.1"
 
 var (
 	showVersion              = flag.Bool("version", false, "Print version and exit")

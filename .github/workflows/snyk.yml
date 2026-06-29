@@ -1,0 +1,27 @@
+name: snyk
+
+# Reports Open Source (SCA), Code (SAST), IaC, and Container findings to Snyk Cloud
+# via the shared reusable workflow. Non-gating (does not block CI / Renovate automerge).
+# See rknightion/.github/.github/workflows/snyk.yml.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "50 6 * * 1"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  snyk:
+    permissions:
+      contents: read
+      packages: read
+    uses: rknightion/.github/.github/workflows/snyk.yml@main
+    secrets:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    with:
+      language: go
+      run-iac: false
+      image: ghcr.io/rknightion/transceiver-exporter:latest

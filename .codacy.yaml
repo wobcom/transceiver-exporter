@@ -1,0 +1,12 @@
+---
+# Repo-local Codacy configuration.
+# Tool/pattern selection is governed by the org-level "rknightion-standard"
+# coding standard; this file only tunes which paths Codacy analyses.
+# Codacy Cloud reads this file from the default branch.
+exclude_paths:
+  - "docs/**"
+  - "test/**"
+  - "**/*_test.go"
+  - "vendor/**"
+  - "generated/**"
+  - "**/generated/**"

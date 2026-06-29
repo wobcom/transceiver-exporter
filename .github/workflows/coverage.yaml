@@ -1,0 +1,22 @@
+name: coverage
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  coverage:
+    name: test coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Run tests with coverage
+        run: go test -covermode=atomic -coverprofile=coverage.out ./...
+      - name: Upload coverage to Codacy
+        uses: codacy/codacy-coverage-reporter-action@89d6c85cfafaec52c72b6c5e8b2878d33104c699 # v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage.out

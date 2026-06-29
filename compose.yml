@@ -1,0 +1,73 @@
+# Docker Compose configuration for transceiver-exporter
+# A Prometheus exporter for SFP/QSFP transceiver diagnostics
+#
+# Usage:
+#   docker compose up -d
+#
+# REQUIRED: Host network mode
+# The exporter enumerates interfaces via net.Interfaces() which only sees
+# interfaces in its own network namespace. Bridge mode would only show
+# container-local interfaces (eth0, lo), not host physical NICs.
+# CAP_NET_ADMIN is REQUIRED (for ethtool ioctl (SIOCETHTOOL) operations)
+
+services:
+  transceiver-exporter:
+    image: ghcr.io/${GITHUB_REPOSITORY:-wobcom/transceiver-exporter}:latest
+    container_name: transceiver-exporter
+    network_mode: host
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    # Restart policy
+    restart: unless-stopped
+    # ===========================================================================
+    # Command Line Options
+    # ===========================================================================
+    # All available options are listed below. Uncomment and modify as needed.
+    # See README.md for full documentation.
+    command:
+      # -------------------------------------------------------------------------
+      # Web Server Configuration
+      # -------------------------------------------------------------------------
+      # Address to listen on (default: "[::]:9458")
+      - "--web.listen-address=[::]:9458"
+      # Path under which to expose metrics (default: "/metrics")
+      - "--web.telemetry-path=/metrics"
+
+      # -------------------------------------------------------------------------
+      # Collector Configuration
+      # -------------------------------------------------------------------------
+      # Collect interface features (default: true)
+      # WARNING: May result in huge amounts of timeseries on many-port switches.
+      # Consider setting to false on switches with many ports.
+      # - "--collector.interface-features.enable=true"
+
+      # Report optical powers in dBm instead of mW (default: false -> mW)
+      # Note: dBm conversion may result in -Inf for 0 values which can cause
+      # issues with software not fully implementing IEEE754 floating point.
+      # - "--collector.optical-power-in-dbm=true"
+
+      # -------------------------------------------------------------------------
+      # Interface Filtering - Exclude
+      # -------------------------------------------------------------------------
+      # Comma separated list of interfaces to exclude
+      # - "--exclude.interfaces=lo,docker0,veth0"
+
+      # Regex pattern of interfaces to exclude
+      # - "--exclude.interfaces-regex=^(docker|veth|br-).*"
+
+      # Don't report on interfaces that are administratively DOWN
+      # - "--exclude.interfaces-down=true"
+
+      # -------------------------------------------------------------------------
+      # Interface Filtering - Include
+      # -------------------------------------------------------------------------
+      # Comma separated list of interfaces to include (only these will be monitored)
+      # - "--include.interfaces=eth0,eth1,swp1,swp2"
+
+      # Regex pattern of interfaces to include
+      # - "--include.interfaces-regex=^(eth|swp|enp).*"
