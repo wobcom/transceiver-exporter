@@ -204,6 +204,8 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/wobcom/go-ethtool v1.0.1 h1:skYXfNuYL7tBRfaVaM2S0OC5l1Bq3RuLa221xIsu4eg=
 github.com/wobcom/go-ethtool v1.0.1/go.mod h1:PbjnGFT05N4N6I2CrWLMFa8yTTv+L3FCv73Vk2dSJPw=
+github.com/wobcom/go-ethtool v1.0.2 h1:RIDlFQ3u/u+0Y0dnqSWDngJSu9P7jPNAcdK1sfgFGWM=
+github.com/wobcom/go-ethtool v1.0.2/go.mod h1:PbjnGFT05N4N6I2CrWLMFa8yTTv+L3FCv73Vk2dSJPw=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
